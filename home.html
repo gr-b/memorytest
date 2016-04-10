@@ -1,0 +1,142 @@
+<html>
+<head>
+<style>
+	html, body {
+	width: 100%;
+	height: 100%;
+	margin = 0px;
+	}
+	canvas {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	
+	}
+</style>
+</head>
+<body>
+	<canvas id="canvas" width="750" height="350">
+	</canvas>
+	<span id="myspan"></span>
+	<p id="thetext"> Nothing has been pressed </p>
+
+	<script>
+	//Initialize the canvas
+	var NUM_PAGES = 3;
+	var canvas = document.getElementById("canvas");
+	canvas.height = NUM_PAGES*window.innerHeight;
+	canvas.width = window.innerWidth;
+	aheight = window.innerHeight;
+	awidth = window.innerWidth;
+	window.addEventListener("keypress",doKeyDown);
+	window.addEventListener("mousedown",doMouseDown);
+	window.addEventListener("mousemove", doMouseMove);
+	var ctx = canvas.getContext("2d");
+	
+	var requestAnimationFrame = window.requestAnimationFrame || 
+                            window.mozRequestAnimationFrame || 
+                            window.webkitRequestAnimationFrame || 
+                            window.msRequestAnimationFrame;
+	
+	// Symbolic Constants:
+	var DRAW_DELAY = 6;
+	var SLIDE_INCREM = 0.01;
+	var SLIDE_LIM = 0.5
+	var percent = 0;
+	
+	// Mouse position:
+	var mouse = {x:0,y:0}; // Zero to start.
+	
+	// Start drawing
+	var drawInterval = setInterval(draw, DRAW_DELAY);
+	
+	function draw(){
+			clear();
+			drawBackground();
+			slideInText("Griffin", "Bishop", 0, aheight/2);
+			//slideInText("Klajasd", "Wootheo", 1, aheight/2);
+	}
+	
+	function getScroll(){
+		return document.documentElement.scrollTop || document.body.scrollTop;
+		}
+	
+	function slideInText(first,second, page, ypos){
+			var scroll = getScroll();
+			//drawPercent(percent);
+			ctx.font = "100px Arial";
+			ctx.fillStyle = "rgb(4,123,119)";
+			if(percent>SLIDE_LIM){
+				percent = SLIDE_LIM;
+			}
+			var firstPixels = ctx.measureText(first).width; // Get the width of the first text 
+			//percent = percent * percent;SSS
+			if(scroll<10 && page == 0){
+				ctx.fillText(first,percent*awidth-firstPixels, scroll+ypos);
+				ctx.fillText(second,awidth-(percent*awidth), scroll+ypos);
+			} else {
+				var limit = (page*aheight)+450;
+				if(scroll>limit) scroll=limit;
+				var widthPercent = (scroll-(page*aheight)) / ypos;
+				ctx.fillText(first,(percent*awidth-firstPixels)+(awidth/2)*widthPercent, scroll+ypos);
+				ctx.fillText(second,(awidth-(percent*awidth))-(awidth/2)*widthPercent, scroll+ypos);
+			}
+			
+			percent = percent + SLIDE_INCREM;
+			//percent = mouse.x / awidth;
+			//console.log(slideInterval);
+			
+	}
+	function drawPercent(given_percent){
+		ctx.font = "20px Arial";
+		var heightPix = 20*1.5;
+		//console.log(heightPix);
+		ctx.fillText(given_percent, 200, 1*heightPix+getScroll());
+		var text = " X:" + mouse.x + " Y" + mouse.y + ".";
+		ctx.fillText(text, 200, 2*heightPix+getScroll());
+		ctx.fillText("" + getScroll(), 200, 3*heightPix+getScroll())
+		}
+	
+	function drawBackground(){
+		// Draw the background first (cyan)
+		//ctx.globalAlpha = 1;
+		ctx.fillStyle = "rgb(0,255,255)";
+		//console.log(awidth,aheight);
+		//ctx.fillRect(0,0,awidth,2*aheight);
+		drawPageBG(0,"rgb(74,250,169)");
+		drawPageBG(1,"rgb(63,90,145)");
+		drawPageBG(2,"rgb(99,145,141)");
+	}
+	
+	function drawPageBG(pagenum, fillstyle){
+		ctx.fillStyle = fillstyle;
+		ctx.fillRect(0,pagenum*aheight,awidth,(pagenum+1)*aheight);
+	}
+	
+	// Handles mouse click events
+	function doKeyDown(e) {
+		//console.log(e.keyCode);
+		var eChar = String.fromCharCode(e.keyCode);
+		//console.log(eChar);
+		document.getElementById("thetext").innerHTML = eChar + " has been pressed.";
+    }
+	
+	//Clears the game of objects
+	function clear(){
+		ctx.clearRect(0,0,canvas.width,canvas.height);
+	}
+	
+	function doMouseMove(e) {
+		mouse.x = e.clientX;
+		mouse.y = e.clientY;
+	}
+	
+	function doMouseDown(e) {
+		document.getElementById("thetext").innerHTML = "The mouse has been clicked.";
+		percent = 0;
+		slideInText();
+	}
+	
+	</script>
+</body>
+</html>
