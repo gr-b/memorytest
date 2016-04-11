@@ -1,0 +1,289 @@
+<html>
+<head>
+<!-- Bubblestort "By Hand" by Griffin Bishop -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+</head>
+<body>
+	<nav class="navbar navbar-inverse">
+		<div class="container-fluid">
+			<ul class="nav navbar-nav">
+				<li>
+					<h6 class="navbar-brand">Bubblesort "By Hand": Enter the elements of the vector to be sorted, separated by spaces.<h6>
+				<div class="container-fluid">
+					<ul class="nav navbar-nav">
+						<li><button type="button" class="btn btn-primary" id="bubblebutton">Bubblesort</button></li>
+						<li><input type="text" class="form-control .col-lg-*" id="vector"></li>
+						<li><button type="button" class="btn btn-primary" id="randbutton">Randomize</button></li>
+						<li><button type="button" class="btn btn-primary" id="bottombutton">To Bottom</button></li>
+						<li><button type="button" class="btn btn-primary" id="modalbutton">Text Instead</button></li>
+					</ul>
+				</div>
+				</li>
+			</ul>
+		</div>
+	</nav>
+	
+	<!-- Modal -->
+	<div id="myModal" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+
+		<!-- Modal content-->
+		<div class="modal-content">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+			<h4 class="modal-title">Text:</h4>
+		</div>
+		<div class="modal-body">
+			<div id="te">Please enter a vector first.</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		</div>
+		</div>
+
+	</div>
+	</div>
+
+	
+	<canvas id="canvas" width="500" height="500" style="border:1px solid #c3c3c3">
+	</canvas>
+	<p id="thetext"> Nothing has been pressed </p>
+	<script>
+	$(document).ready(function(){
+		$("#bottombutton").click(function(){
+				var scroll = realSteps*columnHeight;
+				$('body').scrollTop(scroll-window.innerHeight*(3/4));
+		});
+		
+		$("#modalbutton").click(function(){
+		    console.log(outText);
+			$("#te").text(outText);
+			$("#myModal").modal("toggle");
+		});
+	
+		$("#randbutton").click(function(){
+		    var rands = [];
+			for(var i=0;i<11;i++){
+					rands.push(Math.round(Math.random()*100));
+			}
+			var randstring = rands.join(" ");
+			$("#vector").val(randstring);
+		});
+		
+		$("#bubblebutton").click(function(){
+			// Sort the stuff entered
+			var vectorText = $("#vector").val();
+			if(!(/^\d+$/.test(vectorText.replace(/\s+/g, '')))){ alert("String must only contain digits"); return;}
+			// Make sure its only numbers.
+			var vector = vectorText.split(" ");
+			for (var i=0;i<vector.length;i++){
+					vector[i] = parseInt(vector[i]);
+			}
+			// Now we have the entered vector
+			bubblesort(vector);
+			
+		});
+	});
+	
+	// Canvas initialization
+	var canvas = document.getElementById("canvas");
+	canvas.height = 16*window.innerHeight;
+	canvas.width = window.innerWidth;
+	window.addEventListener("keydown",doKeyDown,false);
+	window.addEventListener("mousedown",doMouseDown,false);
+	
+	var columnHeight = 60;
+	
+	var ctx = canvas.getContext("2d");
+	ctx.fillStyle = "#00ccff";
+	draw();
+	
+	var realSteps = 0;
+	
+	var outText = "";
+	
+	
+	
+	
+	
+	// Given a list of numbers, sort the list using bubblesort.
+	function bubblesort(avect){
+			// First, reset everything from the last time.
+			draw();
+			var steps = 0;
+			var comparisons = 0;
+			var swaps = 0;
+			var swapped = -10;
+			realSteps = 0;
+			
+			printStep(avect, steps, comparisons, swaps, swapped, i);
+			
+			// Start with the first thing in the list;
+			// if it's more than the second thing, swap positions
+			// move to the next one
+			// Repeat this n-amount of times already done this round
+			// Then repeat the whole thing n times.
+			
+			var i = 0; //First elt in list
+			var c = 0;
+			var n = avect.length;
+			var j = 0;
+			
+			for(j=0;j<n-1;j++){ // At worst, each number must be bubbled.
+				for(i=0;i<n-c-1;i++){ //anything after n-c is already sorted.
+					swapped = -15;
+					//textPrintStep(avect, steps, comparisons, swaps, swapped, i);
+					printStep(avect, steps, comparisons, swaps, swapped, i); // For comparison showing
+					if(avect[i]>avect[i+1]){
+						// If it's more than the one after it,
+						// swap them
+						swap(avect,i);
+						swaps++;
+						swapped = i;
+						
+						//console.log(avect[i+1], avect[i], avect[i+2], "swap");
+						//console.log(avect);
+					} else { 
+						swapped = -10; 
+						//console.log(avect[i], avect[i+1], avect[i+2]);
+						//console.log(avect);
+					}
+					comparisons++;
+					steps++;
+					textPrintStep(avect, steps, comparisons, swaps, swapped, i);
+					//printStep(avect, steps, comparisons, swaps, swapped, i); // Showing what has been swapped
+				}
+				c++;
+			}
+			//console.log(outText);
+		
+	}
+	
+	function textPrintStep(avect, steps, comparisons, swaps, swapped, comparing){
+		// Write the current step number, number comparisons, number swaps made
+		var infoString = "Step #: " + steps.toString() + "  ";
+		infoString += "Comparisons: " + comparisons.toString() + "  ";
+		infoString += "Swaps: " + swaps.toString() + "  ";
+		
+		outText += "\n\n" + infoString + "\n";
+		
+		/// Done writing info
+		var numNums = avect.length;
+		
+		for(var k=0;k<numNums;k++){
+			if(comparing == k){
+				outText += " ( " + avect[k];
+			} else if(comparing == k-1){
+				outText += "   " + avect[k] + " ) ";
+			} else {
+				// Not camparing this one or the last
+				outText += "   " + avect[k];
+			}
+	    }
+		if(swapped>0){
+			outText += "\n(swap)";
+		} else {
+			outText += "\n(no swap)";
+		}
+	}
+	
+	// Prints the given vector, showing what was done at that stage.
+	function printStep(avect, steps, comparisons, swaps, swapped, comparing){
+		ctx.fillStyle = "#00ccff";
+		ctx.font="30px Arial";
+		/// Done writing info
+		var numNums = avect.length;
+		// We want (length) dividers, so we want (length+1) to divide into
+		var totalNumPix = getTotalNumPix(avect); // An array of the widths of the numbers.
+		var sumNumPix = totalNumPix.reduce(function(a, b){ return a + b; }, 0);
+		var pixPerNum = (canvas.width-sumNumPix)/(numNums+1);
+		
+		var addedPix = 0;
+		
+		for(var k=0;k<numNums;k++){
+			ctx.fillStyle = "#00ccff";
+		    var textX = (k+1)*pixPerNum+addedPix;
+			var textY = columnHeight*(realSteps+1);
+			ctx.fillText(avect[k],textX, textY);
+			if(comparing == k){
+					ctx.fillStyle = "#ffff66";
+					ctx.fillRect(textX-5, textY+5, 
+				pixPerNum+totalNumPix[k]+totalNumPix[k+1]+10, 5);
+			} else if(swapped>-10 && comparing == k) {
+				ctx.fillStyle = "#ff3300"; 
+				ctx.fillRect(textX-5, textY+5, 
+				pixPerNum+totalNumPix[k]+totalNumPix[k+1]+10, 5);
+			}	
+			
+			addedPix += totalNumPix[k];
+	    }
+		
+		// Write the current step number, number comparisons, number swaps made
+		var infoString = "Step #: " + steps.toString() + "  ";
+		infoString += "Comparisons: " + comparisons.toString() + "  ";
+		infoString += "Swaps: " + swaps.toString() + "  ";
+		// Write the string
+		ctx.font = "15px Arial";
+		ctx.fillStyle = "#0033cc";
+		ctx.fillText(infoString, pixPerNum, columnHeight*(realSteps+1)-30);
+		
+		// Increment total num steps.
+		realSteps++;
+	}
+	
+	// Given an array of numbers, return an array with the number of pixels each number will take up
+	// For the current canvas settings.
+	function getTotalNumPix(arr){
+			var ret = [];
+			for(var i=0;i<arr.length;i++){
+					// Get the width in pixels of the number at i
+					ret.push(ctx.measureText(arr[i].toString()).width);
+			}
+			return ret;
+	}
+	
+	
+	// Given an array and an index, swaps the number at the index with the element at the
+	// index directly after it.
+	function swap(arr,i){
+			var temp = arr[i];
+			arr[i] = arr[i+1];
+			arr[i+1] = temp;
+			return;
+	}
+	
+	function doKeyDown(e) {
+		switch(e.keyCode) {
+			case 87:
+				//w has been pressed
+				document.getElementById("thetext").innerHTML = "The W Key has been pressed.";
+				break;
+			case 83:
+				//s has been pressed
+				document.getElementById("thetext").innerHTML = "The S Key has been pressed.";
+				break;
+			case 65:
+				//a has been pressed
+				document.getElementById("thetext").innerHTML = "The A Key has been pressed.";
+				break;
+			case 68:
+				document.getElementById("thetext").innerHTML = "The D key has been pressed.";
+				break; 
+		}
+    }
+	function draw() {
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	}
+	function doMouseDown(e) {
+		document.getElementById("thetext").innerHTML = "The mouse has been clicked.";}
+	
+	</script>
+</body>
+</html>
