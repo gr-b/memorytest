@@ -1,0 +1,358 @@
+<html>
+<head>
+<!-- Visual Working Memory Test by gr___b -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-76225339-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<script src="logic.js"></script>
+<script src="newlogic.js"></script>
+</head>
+<body style="background-color: black">
+	<nav id="upper_nav" class="navbar navbar-inverse">
+		<div class="container-fluid">
+			<ul class="nav navbar-nav">
+				<li>
+					<p class="navbar-brand">Visual Memory Test</p>
+				</li>
+				<li>
+					<div class="container-fluid">
+						<ul class="nav navbar-nav">
+							<li><button type="button" class="btn btn-primary" id="bubblebutton">Start</button></li>
+						</ul>
+					</div>
+				</li>
+			</ul>
+		</div>
+	</nav>
+	
+	<canvas id="canvas" width="500" height="500"></canvas>
+	<footer class="footer">
+      <div class="container">
+		<center><a>It gets harder every time! </a>
+        <p style="align:center" class="text-muted">Inspiration: <a href="http://imgur.com/gallery/i4TZ4no">Imgur Link</a></p></center>
+      </div>
+    </footer>
+	
+	<!-- Modal -->
+	<div id="myModal" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+
+		<!-- Modal content-->
+		<div class="modal-content">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+			<h4 class="modal-title">Options</h4>
+		</div>
+		<div class="modal-body">
+			<p id="cellsp" >Cells(on axis):</p>
+			<input type="range" id="cells" min="1" step="1" max="100" />
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		</div>
+		</div>
+
+	</div>
+	</div>
+	
+	<script>
+	$(document).ready(function(){
+		$('#upper_nav').hide();
+		
+		$("#options").click(function(){
+			$("#myModal").modal("toggle");
+		});
+		
+		$( window ).resize(function(){
+			console.log(mode);
+			reset();
+			
+			if (mode == 0){
+				drawInitScreen();
+			} else if(mode == 1){
+				drawNums();
+			} else if(mode == 2){
+				drawCells();
+			}
+		});
+		
+		$( canvas ).click(function(e){
+				handleClick(e);
+		});
+		
+		$('#cells').on('input change', function(){
+				CELLS_X = this.value;
+				CELLS_Y = this.value;
+				$('#cellsp').text('Cells:' + CELLS_X);
+		});
+		
+		/*$('#nums').on('input change', function(){
+				NUMS = this.value;
+				$('#numsp').text('Numbers:' + NUMS);
+		});*/
+		
+	});
+	
+	// Canvas initialization
+	var canvas = document.getElementById("canvas");
+	canvas.height = window.innerHeight;
+	canvas.width = window.innerWidth;
+	
+	var BGCOLOR = "black";
+	
+	var ctx = canvas.getContext("2d");
+	var GRAPH_PERCENT_FROM_EDGES = 0.05;
+	var START_FONT = "Courier New";
+	var MEMORY_TIME = 3500; // In ms.
+	
+	// Initialize these variables.
+	var graph_height = 0;
+	var graph_width = 0;
+	
+	var graph_top_y = 0;
+	var graph_bottom_y = 0;
+	
+	var graph_left_x = 0;
+	var graph_right_x = 0;
+	
+	var graph;
+	//// End init vars ////
+	
+	var mode = 0; // 0 is start screen.
+	var curr_clicked = 0;
+	var total_time = 0;
+	var errors = 0;
+	
+	var CELLS_X = 10;
+	var CELLS_Y = 10;
+	var NUMS = getNums();
+	var memory_array = [];
+	var start;
+	var finish;
+	
+	reset();
+	drawInitScreen();
+	
+	// Figures out which mode it is in; directs flow accordlingly.
+	function handleClick(e){
+		if (mode == 0){
+			mode = 1; // Change mode to game mode.
+			startGame();
+		} else if(mode == 1){
+			// Do nothing
+		} else if(mode == 2){
+			gameClick(e);
+		} else if(mode == 3){
+			reset()
+			mode = 0;
+			memory_array = [];
+			errors = 0;
+			total_time = 0;
+			curr_clicked = 0;
+			drawInitScreen();
+		}
+	}
+	
+	// Called at user click start screen.
+	function startGame(){
+		reset();
+		generateBoard();
+		var shortDelay = 50;
+		window.setTimeout(drawNums, shortDelay);
+		console.log('TIMEMEME:' + MEMORY_TIME);
+		window.setTimeout(clickMode, MEMORY_TIME+shortDelay);
+	}
+	
+	// Called MEMORY_TIME after the start is clicked.
+	function clickMode(){
+			mode = 2;
+			drawCells();
+			start = new Date().getTime();
+			console.log(start);
+	}
+	
+	// Handles a click during mode 2
+	function gameClick(e){
+		/*if(curr_clicked == memory_array.length){
+				mode = 3;
+				reset();
+				drawScoreScreen();
+		}*/
+		var coords = getCellAtClick(e);
+		// If they clicked a box, show it if it was the right number
+		var cellVal = getCellValue(coords.x, coords.y);
+		if(cellVal == -1){
+			return;
+		}
+		// If they clicked a cell, do this:
+		var cell = {value:cellVal, x:coords.x, y:coords.y};
+		if(cell.value == curr_clicked+1){
+				drawCell(cell, "black"); // Clear only that cell.
+				drawNum(cell);
+				curr_clicked++;
+				outlineGraph();
+				if(curr_clicked == memory_array.length){
+					finish = new Date().getTime();
+					mode = 3;
+					reset();
+					drawScoreScreen();
+				}
+		} else if (cell.value > curr_clicked){
+				errors++;
+				drawCell(cell, "red");
+				outlineGraph();
+				window.setTimeout(function(){
+					drawCell(cell, "white");
+				}, 250);
+		}
+	}
+	
+	// Draws mode 3; the score screen.
+	function drawScoreScreen(){
+			var difference = finish-start;
+			total_time = Math.round(difference/1000);
+		
+			ctx.fillStyle = "white";
+			var fsize = getMaxFontSize()*.75;
+			ctx.font = fsize+"px " + START_FONT;
+			ctx.fillText('Time for ' + NUMS + ' numbers: ' + total_time + "s", graph.left_x + 10, graph.top_y+fsize);
+			ctx.fillText('Errors: ' + errors, graph.left_x + 10, graph.top_y + fsize*3);
+			ctx.fillText(CELLS_X + ' by ' + CELLS_Y + ' grid', graph.left_x + 10, graph.top_y + fsize*5);
+			NUMS++;
+			ctx.fillText('Click to play with ' + NUMS, graph.left_x + 10, graph.top_y + fsize*7);
+	}
+	
+	// Returns a coordinate object with the x and y position
+	// where the mouse has been clicked.
+	function getCellAtClick(e){
+		// Find which cell the user clicked
+		var cellWidth = getCellDimension("width", "X");
+		var cellHeight = getCellDimension("height", "Y");
+		
+		var x = (e.clientX - graph.left_x)/cellWidth;
+		var y = (e.clientY - graph.top_y)/cellHeight;
+		x = Math.floor(x);
+		y = Math.floor(y);
+		return {x:x, y:y};
+	}
+	
+	// Puts numbers from 1 to NUMS in an array with random positions.
+	// Sparse Array
+	function generateBoard(){
+		console.log(NUMS);
+		for(var i=1;i<NUMS+1;i++){
+				var xpos = randInt(CELLS_X);
+				var ypos = randInt(CELLS_Y);
+				var cell = {value:i, x:xpos, y:ypos};
+				if(getCellValue(xpos, ypos) == -1){ // getCellValue returns -1 if there's no value at that position
+					memory_array.push(cell);
+				} else {
+					i--;
+				}
+		}
+	}
+	
+	// Draws the whited out cells
+	function drawCells(){
+		for(var i=0;i<memory_array.length;i++){
+				drawCell(memory_array[i], "white");
+		}
+	}
+	
+	// Draws the numbers of the memory array in cells
+	function drawNums(){
+		for(var i=0;i<memory_array.length;i++){
+				drawNum(memory_array[i]);
+		}
+	}
+	
+	// Draws a number of the memory array in its cell
+	function drawNum(cell){
+		var cellWidth = getCellDimension("width", "X");
+		var cellHeight = getCellDimension("height", "Y");
+			
+		var xpos = getCellPos(cell.x, cellWidth, graph.left_x);
+		var ypos = getCellPos(cell.y, cellHeight, graph.top_y);
+		var ypos = ypos + cellHeight;
+		
+		ctx.fillStyle = "white";
+		ctx.font = Math.round(cellHeight*0.8) + "px " + START_FONT;
+		
+		var xpos = centerText(cell.value, xpos+cellWidth/2);
+		var ypos = ypos - cellHeight*0.25;
+		
+		ctx.fillText(cell.value, xpos, ypos);
+	}
+	
+	// Draws the given cell on screen.
+	function drawCell(cell, color){
+			var cellWidth = getCellDimension("width", "X");
+			var cellHeight = getCellDimension("height", "Y");
+			
+			var xpos = getCellPos(cell.x, cellWidth, graph.left_x);
+			var ypos = getCellPos(cell.y, cellHeight, graph.top_y);
+			
+			
+			ctx.fillStyle = color;
+			ctx.fillRect(xpos, ypos, cellWidth, cellHeight);
+	}
+	
+	function reset(){
+		clear();
+		initCanvas();
+		calcGraphLocations();	
+		outlineGraph();
+	}
+	
+	
+	function drawInitScreen(){
+			// Now draw the start text
+			ctx.fillStyle = "white";
+			//ctx.font = getMaxFontSize()*2+"px Courier New";
+			var text = 'Click to Start';
+			var centerX = Math.round(canvas.width/2);
+			var centerY = Math.round(canvas.height/2)
+			ctx.fillText(text, maxFontInGraphX(text, START_FONT), centerY);
+	}
+	
+	function outlineGraph(){
+		// Draw a square outline of the graph
+		ctx.strokeStyle = "white";
+		ctx.lineWidth=7;
+		ctx.strokeRect(graph.left_x, graph.top_y, graph.width, graph.height);
+		ctx.lineWidth=1;
+	}
+	
+	// Draws the canvas background and inital text
+	function initCanvas(){
+			canvas.height = window.innerHeight - document.getElementById("upper_nav").clientHeight;
+			canvas.width = window.innerWidth;
+			
+			// Make the board a square.
+			canvas.height = Math.min(canvas.height, canvas.width);
+			canvas.width = canvas.height;
+			
+			ctx.fillStyle = BGCOLOR;
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+	}
+	function clear() {
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	}
+	</script>
+</body>
+</html>
