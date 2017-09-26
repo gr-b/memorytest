@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<script type="text/javascript" src="d3.min.js"></script>
+
+</head>
+
+<body>
+
+</body>
+
+<script type="text/javascript" src="ponti.json"></script>
+<script type="text/javascript">
+
+/*for(var i=0; i<ponti.length;i++){
+	console.log(ponti[i])
+}*/
+
+function toArray(object){
+	arr = [];
+	for(var key in object){
+		if(object.hasOwnProperty(key)){
+			arr.push([key, object[key]]);
+		}
+	}
+	return arr;
+}
+
+function removeSVGs(){
+	var elements = document.getElementsByTagName("svg");
+	for(var i = elements.length - 1; i >=0; i--){
+		elements[i].parentNode.removeChild(elements[i]);
+	}
+}
+
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+var select = d3.select("body").append("select")
+	.attr("onChange", "draw()");
+select.selectAll("option")
+	.data(toArray(ponti[0]))
+	.enter()
+	.append("option")
+	.attr("value", function(d){return d[0]})
+	.text(function(d){return d[0]});
+
+
+
+
+function draw() {
+
+var selector = document.getElementsByTagName("select")[0];
+var selectedAttribute = selector.options[selector.selectedIndex].text;
+console.log(selectedAttribute);
+
+removeSVGs();
+
+var offset = 100;
+
+var svgContainer = d3.select("body").append("svg")
+	.attr("width", 800)
+	.attr("height", 400 - offset)
+	.attr("display", "block")
+	.style("border", "1px solid black");
+
+
+var circles = svgContainer.selectAll("circle")
+	.data(ponti)
+	.enter()
+	.append("circle");
+
+var convertLat = function (d) {
+	var lat = parseFloat(d['lat']);	
+	var lat = lat * 10;
+	return lat;
+};
+
+//var selectedAttribute = 'Material of Summit Pavement';
+
+// Legend creation
+var legend = {};
+//var colors = ["red","green","blue", "lime", "fuchsia", "purple", "silver", "yellow", "aqua"]
+var colors = ["aqua","silver","purple","yellow","fuchsia","lime","blue","green","red"];
+
+for(var i=0; i<ponti.length;i++){
+	var bridge = ponti[i];
+	var selectedCategory = bridge[selectedAttribute];
+	if (!(selectedCategory in legend)) {
+		legend[selectedCategory] = 1;
+	} else {
+		legend[selectedCategory] = legend[selectedCategory] + 1;
+	}
+}
+var sortable = [];
+for(var category in legend){
+	sortable.push([category, legend[category]]);
+}
+sortable.sort(function(a, b) {
+	return b[1] - a[1];
+});
+
+var legend = {};
+for (var i in sortable){
+	var pair = sortable[i];
+	if (colors.length > 0) {
+		legend[pair[0]] = colors.pop();
+	} else {
+		legend[pair[0]] = getRandomColor();
+	}
+}
+// End legend creation
+
+var circleAttributes = circles
+	.attr("cx", function (d) {
+		var temp = (10 * parseFloat(d['lng']))-123;
+		return temp*1000;
+	})
+	.attr("cy", function (d) {
+		var temp = (10 * parseFloat(d['lat']))-454;
+		var ypos = 600 - (temp*1000);
+		return ypos - offset;
+	})
+	.attr("r", 2)
+	.style("fill", function(d) {
+		var material = d[selectedAttribute];
+		var color = legend[material];
+		//console.log("Material: " + material + " | Color: " + color);
+		return color;
+	})
+	.attr("opacity", function (d) {
+		return 0.5; 
+	});
+
+/*for(var category in legend){
+	if(legend.hasOwnProperty(category)){
+		console.log(category + ": " + legend[category])
+	}
+}*/
+
+var currentY = 0;
+var iterableLegend = [];
+for(var category in legend){
+	currentY = currentY + 10;
+	iterableLegend.push({'category': category, 'color': legend[category],'y': currentY});
+}
+
+/*var legendContainer = d3.select("body")
+	.selectAll("div")
+	.data(iterableLegend)
+	.enter()
+	.append("div")
+	.text(function(d){
+		console.log(d);
+		return d;
+	});
+*/	
+
+var height = iterableLegend.length * 20 + 20;
+
+var legendSVG = d3.select("body").append("svg")
+	.attr("width", 400)
+	.attr("height", height)
+	.attr("display", "block")
+	.style("border", "1px solid black");
+
+var legendCircles = legendSVG.selectAll("g")
+	.data(iterableLegend)
+	.enter()
+	.append("g")
+	.attr("transform", function (d){ return "translate(10,"+d.y+")"});
+
+var legendCircleAttributes = legendCircles.append("circle")
+	.attr("cx", function (d) {
+		return 10;
+	})
+	.attr("cy", function (d) {
+		currentY = d.y;
+		//console.log(currentY);		
+		return currentY;
+	})
+	.attr("r", 5)
+	.style("fill", function(d) {
+		return d.color;
+	})
+	.attr("opacity", function (d) {
+		return 0.5; 
+	});
+
+legendCircles.append("text")
+	.attr("x", 20)
+	.attr("y", function(d){return d.y + 5})
+	.text(function (d){return d.category});
+}
+
+draw();
+
+</script>
+</html>
