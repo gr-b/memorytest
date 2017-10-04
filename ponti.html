@@ -106,6 +106,7 @@ function openTooltip(cid){
 		.attr("style", "fill:red");
 	gs.append("text")
 		.text(category)
+		.attr("font-size", 30)
 		.attr("transform", "translate(-20,-10)");
 	
 }
@@ -197,7 +198,13 @@ var convertLat = function (d) {
 // Legend creation
 var legend = {};
 //var colors = ["red","green","blue", "lime", "fuchsia", "purple", "silver", "yellow", "aqua"]
-var colors = ["aqua","silver","grey","grey","red","fuchsia","blue","green","orange"];
+var colors = ["#D89596","#C8BD77",
+		"#C4F065","#299870","#0479A4","#97A8DE","#546FCF","#69EA34","#C3299E","#929765"
+,
+		"#E44F1C","#DA2B88","#F1FBE2","#123A1C","#BCD94B","#75EFE6","#BA24D3",
+		"#7F8931","#338618","#8128A5","#7F7A8F","#4F0843","#557C87","#E18158",
+		"#8615F3","#3D2E5E","#B7E7F7","#532668","#132B90","#F5FAAF",
+		"aqua","silver","grey","grey","red","fuchsia","blue","green","orange"];
 
 for(var i=0; i<ponti.length;i++){
 	var bridge = ponti[i];
