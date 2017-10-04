@@ -12,11 +12,11 @@
 
 </body>
 
-<script type="text/javascript" src="ponti.json"></script>
+<script type="text/javascript" src="Ponti.json"></script>
 <script type="text/javascript">
 
 var legendPointRadius = 5;
-var dataPointRadius = 5;
+var dataPointRadius = 4;
 
 for(var i=0; i<ponti.length;i++){
 	//console.log(ponti[i])
@@ -115,10 +115,10 @@ function closeTooltip(){
 };
 
 
-var xMultiplier = 930;
-var yMultiplier = 1250;
-var xOffset = -20;
-var yOffset = 270;
+var xMultiplier = 1030;
+var yMultiplier = 1460;
+var xOffset = 100;
+var yOffset = 310;
 
 document.onkeypress = function (e) {
 	e = e || window.event;
@@ -152,8 +152,8 @@ document.onkeypress = function (e) {
 
 function draw() {
 
-var svgWidth = 600;
-var svgHeight = 390;
+var svgWidth = 800;
+var svgHeight = 424;
 
 
 refreshHeading();
@@ -170,12 +170,13 @@ var svgContainer = d3.select("body").append("svg")
 
 // Add venice image
 svgContainer.append("image")
-	.attr("xlink:href", "https://i.pinimg.com/736x/e5/c0/d7/e5c0d75f80bb7ca18fa9726b0c3fe779--italy-map-grand-canal.jpg")
+	//.attr("xlink:href", "https://i.pinimg.com/736x/e5/c0/d7/e5c0d75f80bb7ca18fa9726b0c3fe779--italy-map-grand-canal.jpg")
 	//.attr("xlink:href", "https://i.imgur.com/rK8eOsi.gif")
+	.attr("xlink:href", "https://i.imgur.com/5NqoO4i.png")
 	.attr("x", 0)
 	.attr("y", 0)
-	.attr("width", 600)
-	.attr("height", 450);
+	.attr("width", 800)
+	.attr("height", 424);
 	//.attr("transform", "skewX(10) skewY(10)");
 ////////
 
@@ -196,7 +197,7 @@ var convertLat = function (d) {
 // Legend creation
 var legend = {};
 //var colors = ["red","green","blue", "lime", "fuchsia", "purple", "silver", "yellow", "aqua"]
-var colors = ["aqua","silver","purple","yellow","fuchsia","lime","blue","green","red"];
+var colors = ["aqua","silver","grey","grey","red","fuchsia","blue","green","orange"];
 
 for(var i=0; i<ponti.length;i++){
 	var bridge = ponti[i];
